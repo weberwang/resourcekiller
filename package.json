@@ -1,0 +1,20 @@
+{
+  "name": "resourcekiller",
+  "version": "0.0.1",
+  "description": "查找没有被引用的资源",
+  "author": "minko",
+  "main": "main.js",
+  "main-menu": {
+    "资源管理/resourcekiller/": {
+      "message": "resourcekiller:open"
+    }
+  },
+  "panel": {
+    "main": "panel/killer.js",
+    "type": "dockable",
+    "title": "Find Resources",
+    "width": 500,
+    "height": 600,
+    "messages": []
+  }
+}

@@ -8,21 +8,21 @@ var UuidTemplate = _t.concat(_t, '-', _t, '-', _t, '-', _t, '-', _t, _t, _t);
 var Indices = UuidTemplate.map(function (x, i) {
     return x === '-' ? NaN : i;
 }).filter(isFinite);
-export default decodeUuid = (base64str) => {
+module.exports = (base64) => {
     // fcmR3XADNLgJ1ByKhqcC5Z -> fc991dd7-0033-4b80-9d41-c8a86a702e59
-    let base64 = base64str.split("");
-    Editor.log("base64=====>", base64.length)
+    // let base64 = base64str.split("");
+    Editor.log("base64=====>", base64.length);
     if (base64.length !== 22) {
         return base64;
     }
     UuidTemplate[0] = base64[0];
     UuidTemplate[1] = base64[1];
     for (var i = 2, j = 2; i < 22; i += 2) {
-        var lhs = Base64Values[base64.charCodeAt(i)];
-        var rhs = Base64Values[base64.charCodeAt(i + 1)];
+        var lhs = BASE64_VALUES[base64.charCodeAt(i)];
+        var rhs = BASE64_VALUES[base64.charCodeAt(i + 1)];
         UuidTemplate[Indices[j++]] = HexChars[lhs >> 2];
         UuidTemplate[Indices[j++]] = HexChars[((lhs & 3) << 2) | rhs >> 4];
-        UuidTemplate[Indices[j++]] = HexChars[rhs & 0xF];
+        UuidTemplate[Indices[j++]] = HexChars[rhs & 15];
     }
     return UuidTemplate.join('');
 }

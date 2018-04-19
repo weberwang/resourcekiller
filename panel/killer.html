@@ -1,5 +1,37 @@
-<div id="killer">
-    <label>忽略文件:</label>
-    <input v-bind="files">
-    <p><button v-on:click="onQuery">查找</button></p>
+<div id="killer" class="killer">
+    <p>
+        <button v-on:click="onQuery" class="fa fa-refresh">查找</button>
+    </p>
+    <p>
+        <label style="color: #979906;size: 24px">删除前确认资源没有被动态加载，删除前请备份</label>
+    </p>
+    <p/>
+    <span>
+        <i>一共找到{{unusedResults.length}}个未被引用的资源</i>
+        <div style="margin: 0,0; cursor: pointer;">
+
+            <i>选中{{selectedIndexs.length}}</i>
+            <i class="fa fa-trash" title="删除" @click="onDeleteItems"></i>
+        </div>
+
+    </span>
+    <section class="form">
+        <ul>
+            <li>
+                <div class="path">路径</div>
+                <div class="operating">操作</div>
+                <div class="controller"></div>
+            </li>
+            <li is="todo-item" v-for="(index, result) in unusedResults" v-bind:key="index" :title="result">
+                <div class="path">
+                    {{result}}
+                </div>
+                <div class="controller">
+                    <i class="fa fa-check-square" aria-hidden="true" title="选择" @click="onSelected($event,index)"></i>
+                    <i class="fa fa-file" aria-hidden="true" title="场景资源" @click="onHintAsset(result)"></i>
+                    <i class="fa fa-times" aria-hidden="true" title="删除该资源" @click="onDeleteItem(index)"></i>
+                </div>
+            </li>
+        </ul>
+    </section>
 </div>

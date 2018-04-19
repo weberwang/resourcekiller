@@ -1,34 +1,69 @@
 'use strict';
-let path = require("path")
-let fs = require("fs")
-
-let types = ["texture", "audioClip"]
-
+let fs = require("fs");
+let findAssets = require(Editor.url('packages://resourcekiller/panel/findAssets'))
 let html = Editor.url("packages://resourcekiller/panel/killer.html")
+let css = Editor.url("packages://resourcekiller/panel/killer.css")
+
 let assetdb = Editor.assetdb;
 
 Editor.Panel.extend({
   template: fs.readFileSync(html, "utf-8"),
+  style: fs.readFileSync(css, 'utf-8'),
+  vm: null,
   $: {
-    killer: '#killer'
+    killer: '#killer',
   },
 
+  messages: {
+    onUnsedResults(sender, results) {
+      this.vm.unusedResults = results;
+    }
+  },
   ready() {
-    new window.Vue({
+    this.vm = new window.Vue({
       el: this.$killer,
       data: {
-
+        unusedResults: [],
+        selectedIndexs: []
       },
 
       methods: {
-        onQuery: (e) => {
+        onQuery(e) {
           Editor.log("开始查询...");
-          assetdb.deepQuery((results) => {
-            results && results.forEach(result => {
-              Editor.log(result.name, result.extname, result.type)
-            });
-          })
-          assetdb.refresh("db://assets");
+          this.selectedIndexs = [];
+          findAssets.findAllUsedResource();
+        },
+
+        onSelected(event, index) {
+          let idx = this.selectedIndexs.indexOf(index)
+          if (idx === -1) {
+            event.currentTarget.className = "fa fa-check-square-o";
+            this.selectedIndexs.push(index);
+          } else {
+            event.currentTarget.className = "fa fa-check-square";
+            this.selectedIndexs.splice(idx, 1);
+          }
+        },
+
+        onDeleteItem(index) {
+          let asseturl = this.unusedResults.splice(index, 1)[0];
+          assetdb.delete(asseturl);
+        },
+
+        onHintAsset(url) {
+          if (assetdb.remote.exists(url)) {
+            let uuid = assetdb.remote.urlToUuid(url);
+            Editor.Ipc.sendToPanel("assets", 'assets:hint', uuid);
+            Editor.Selection.select('asset', uuid, true);
+          }
+        },
+
+        onDeleteItems() {
+          for (const index of this.selectedIndexs) {
+            Editor.log("onDeleteItems====>", index);
+            this.onDeleteItem(index);
+          }
+          this.selectedIndexs = [];
         }
       }
     });

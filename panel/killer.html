@@ -19,7 +19,7 @@
         </span>
 
     </span>
-    <section class="form" el:"form" ref="form" id="form">
+    <section class="form" id="form" el="form">
         <ul>
             <li>
                 <div class="path">路径</div>
@@ -31,7 +31,7 @@
                     {{result}}
                 </div>
                 <div class="controller">
-                    <input type="checkbox" title="选择" el: "selects" ref="selects" @click="onSelected($event,index)" />
+                    <input type="checkbox" title="选择" el="selects" ref="selects" @click="onSelected($event,index)" />
                     <!-- <i class="fa fa-check-square" aria-hidden="true" title="选择" @click="onSelected($event,index)"></i> -->
                     <i class="fa fa-file" aria-hidden="true" title="场景资源" @click="onHintAsset(result)"></i>
                     <i class="fa fa-times" aria-hidden="true" title="删除该资源" @click="onDeleteItem($event, index)"></i>

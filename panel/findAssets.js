@@ -12,6 +12,9 @@ let resourceTypes = [{
 }, {
     type: "cc.Animation",
     value: "_clips"
+}, {
+    type: "sp.Skeleton",
+    value: "_N$skeletonData"
 }];
 
 let animTyps = [{
@@ -45,6 +48,7 @@ let findUsedResource = (assetType) => {
             let data = fs.readFileSync(result.path, {
                 encoding: "utf-8"
             });
+            Editor.log(result.path)
             let assetData = JSON.parse(data);
             if (result.type === "animation-clip") {
                 findAnima(assetData);
@@ -61,6 +65,7 @@ let findSceneAndPrefab = (assetData) => {
         let typeData = pattentType(asset["__type__"]);
         if (typeData) {
             let value = asset[typeData["value"]];
+            if (!value) continue;
             if (typeData.type === "cc.Animation") {
                 for (const data of value) {
                     deleteExistWithUuid(data["__uuid__"]);
@@ -81,18 +86,19 @@ let findAnima = (assetData) => {
     let comps = assetData["curveData"]["comps"];
     if (comps && comps["cc.Sprite"]) {
         let spriteFrames = comps["cc.Sprite"]["spriteFrame"];
-        for (const spriteFrame of spriteFrames) {
-            let uuid = spriteFrame["value"]["__uuid__"];
-            deleteExistWithUuid(uuid);
+        if (spriteFrames) {
+            for (const spriteFrame of spriteFrames) {
+                let uuid = spriteFrame["value"]["__uuid__"];
+                deleteExistWithUuid(uuid);
+            }
         }
     }
 }
 
 let deleteExistWithUuid = (uuid) => {
     let resourcePath = assetdb.remote.uuidToUrl(uuid);
-    resourcePath = PATH.extname(resourcePath) !== "" ? resourcePath : PATH.dirname(resourcePath);
+    resourcePath = PATH.extname(resourcePath) != "" ? resourcePath : PATH.dirname(resourcePath);
     let index = checkFilesPaths.indexOf(resourcePath)
-    Editor.log("resourcePath=====>", index, resourcePath)
     if (index > -1) checkFilesPaths.splice(index, 1);
 }
 
@@ -111,13 +117,12 @@ let findAllResourceInAsset = (cb) => {
                 checkFilesPaths.push(assetdb.remote.uuidToUrl(result.uuid));
             }
         }
-        // Editor.log("findAllResourceInAsset", checkFilesPaths)
         cb()
     })
 }
 
 module.exports.findEmptyFinder = () => {
-    assetdb.queryAssets('db://assets/', "folder", (err, results) => {
+    assetdb.queryAssets('db://assets/**', "folder", (err, results) => {
         if (err) {
             return;
         }
@@ -131,12 +136,8 @@ module.exports.findEmptyFinder = () => {
 }
 
 let deleteFolderRecursive = (path) => {
-    Editor.log(path);
     if (fs.existsSync(path)) {
         let files = fs.readdirSync(path);
-        files.forEach((file) => {
-            Editor.log(file)
-        })
         if (files.length === 0) {
             assetdb.delete(assetdb.remote.fspathToUrl(path), (err) => {
                 if (!err) {

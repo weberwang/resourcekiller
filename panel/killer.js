@@ -12,16 +12,13 @@ Editor.Panel.extend({
   vm: null,
   $: {
     killer: '#killer',
+    form: "#form"
   },
 
   messages: {
     onUnsedResults(sender, results) {
       this.vm.unusedResults = results;
     }
-  },
-
-  mounted() {
-    Editor.log("mounted======>")
   },
   ready() {
     this.vm = new window.Vue({
@@ -34,7 +31,7 @@ Editor.Panel.extend({
 
       methods: {
         onQuery(e) {
-          Editor.log("开始查询...");
+          Editor.success("开始查找未被直接引用的资源...");
           this.selectedIndexs = [];
           findAssets.findAllUsedResource();
         },
@@ -53,7 +50,7 @@ Editor.Panel.extend({
         onDeleteItem(e, index) {
           let asseturl = this.unusedResults.splice(index, 1)[0];
           assetdb.delete(asseturl);
-          findAssets.findEmptyFinder();
+          this.deleteFinish();
         },
 
         onHintAsset(url) {
@@ -70,23 +67,29 @@ Editor.Panel.extend({
             items.push(this.unusedResults.splice(index, 1)[0])
           }
           assetdb.delete(items);
-          findAssets.findEmptyFinder();
+          this.deleteFinish();
         },
 
         onSelectedAll(event) {
           this.selectAll = !this.selectAll;
           if (this.selectAll) {
-            for (const key in this.$el.ownerDocument) {
+            for (const key in this.$els) {
               Editor.log(key)
             }
-            let selects = this.$el.ownerDocument.getElementById("killer");
-            Editor.log(selects)
+            Editor.log(this.selects)
+            let selects = document.getElementById("form");
+
             // event.currentTarget.className = "fa fa-check-square-o";
             this.selectedIndexs = this.unusedResults.concat();
           } else {
             // event.currentTarget.className = "fa fa-check-square";
             this.selectedIndexs.splice(0);
           }
+        },
+
+        deleteFinish() {
+          findAssets.findEmptyFinder();
+          Editor.success("清理完成")
         }
       }
     });

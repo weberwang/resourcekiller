@@ -1,7 +1,7 @@
 'use strict';
 
 let fs = require("fs");
-let path = require("path")
+let PATH = require("path")
 
 let resourceTypes = [{
     type: "cc.Sprite",
@@ -81,7 +81,7 @@ let findAnima = (assetData) => {
 
 let deleteExistWithUuid = (uuid) => {
     let resourcePath = assetdb.remote.uuidToUrl(uuid);
-    resourcePath = path.extname(resourcePath) !== "" ? resourcePath : path.dirname(resourcePath);
+    resourcePath = PATH.extname(resourcePath) !== "" ? resourcePath : PATH.dirname(resourcePath);
     let index = checkFilesPaths.indexOf(resourcePath)
     Editor.log("resourcePath=====>", index, resourcePath)
     if (index > -1) checkFilesPaths.splice(index, 1);
@@ -107,7 +107,7 @@ let findAllResourceInAsset = (cb) => {
     })
 }
 
-let findEmptyFinder = () => {
+module.exports.findEmptyFinder = () => {
     assetdb.queryAssets('db://assets/**\/*', "folder", (err, results) => {
         if (err) {
             return;
@@ -115,19 +115,28 @@ let findEmptyFinder = () => {
         for (const result of results) {
             if (result.hidden === false) {
                 let path = assetdb.remote.uuidToFspath(result.uuid);
-                fs.readdir(path, (err, files) => {
-                    if (err) {
-                        return;
-                    }
-                    files.forEach((file) => {
-                        Editor.log(file)
-                    })
-                })
+                deleteFolderRecursive(path);
             }
         }
     });
-
 }
+
+let deleteFolderRecursive = (path) => {
+    Editor.log(path);
+    if (fs.existsSync(path)) {
+        let files = fs.readdirSync(path);
+        files.forEach((file) => {
+            Editor.log(file)
+        })
+        if (files.length === 0) {
+            assetdb.delete(assetdb.remote.fspathToUrl(path), (err) => {
+                if (!err) {
+                    deleteFolderRecursive(PATH.dirname(path));
+                }
+            })
+        }
+    }
+};
 
 
 module.exports.findAllUsedResource = () => {

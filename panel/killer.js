@@ -50,9 +50,10 @@ Editor.Panel.extend({
           }
         },
 
-        onDeleteItem(index) {
+        onDeleteItem(e, index) {
           let asseturl = this.unusedResults.splice(index, 1)[0];
           assetdb.delete(asseturl);
+          findAssets.findEmptyFinder();
         },
 
         onHintAsset(url) {
@@ -64,11 +65,12 @@ Editor.Panel.extend({
         },
 
         onDeleteItems() {
-          for (const index of this.selectedIndexs) {
-            Editor.log("onDeleteItems====>", index);
-            this.onDeleteItem(index);
+          let items = []
+          for (const index of this.selectedIndexs.splice(0)) {
+            items.push(this.unusedResults.splice(index, 1)[0])
           }
-          this.selectedIndexs.splice(0);
+          assetdb.delete(items);
+          findAssets.findEmptyFinder();
         },
 
         onSelectedAll(event) {

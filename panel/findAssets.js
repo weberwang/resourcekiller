@@ -9,6 +9,9 @@ let resourceTypes = [{
 }, {
     type: "cc.AudioSource",
     value: "_clip"
+}, {
+    type: "cc.Animation",
+    value: "_clips"
 }];
 
 let animTyps = [{
@@ -19,7 +22,7 @@ let animTyps = [{
     value: "_clip"
 }];
 let assetsTypes = ["scene", "prefab", "animation-clip"]
-let checkTyps = ["texture", "audio-clip", "typescript", "javascript"]
+let checkTyps = ["texture", "audio-clip", "typescript", "javascript", "animation-clip"]
 let assetdb = Editor.assetdb;
 
 let checkFilesPaths = []
@@ -34,7 +37,7 @@ let pattentType = (type) => {
 }
 
 let findUsedResource = (assetType) => {
-    assetdb.queryAssets('db://assets/**\/*', assetType, (err, results) => {
+    assetdb.queryAssets('db://assets/**', assetType, (err, results) => {
         if (err) {
             return
         }
@@ -43,7 +46,7 @@ let findUsedResource = (assetType) => {
                 encoding: "utf-8"
             });
             let assetData = JSON.parse(data);
-            if (assetType === "animation-clip") {
+            if (result.type === "animation-clip") {
                 findAnima(assetData);
             } else {
                 findSceneAndPrefab(assetData);
@@ -57,8 +60,14 @@ let findSceneAndPrefab = (assetData) => {
     for (const asset of assetData) {
         let typeData = pattentType(asset["__type__"]);
         if (typeData) {
-            let assetuuid = asset[typeData["value"]]["__uuid__"];
-            deleteExistWithUuid(assetuuid)
+            let value = asset[typeData["value"]];
+            if (typeData.type === "cc.Animation") {
+                for (const data of value) {
+                    deleteExistWithUuid(data["__uuid__"]);
+                }
+            } else {
+                deleteExistWithUuid(value["__uuid__"]);
+            }
         } else {
             if (asset["__type__"].indexOf("cc.") === -1) {
                 let scriptUuid = Editor.Utils.UuidUtils.decompressUuid(asset['__type__']);
@@ -70,7 +79,7 @@ let findSceneAndPrefab = (assetData) => {
 
 let findAnima = (assetData) => {
     let comps = assetData["curveData"]["comps"];
-    if (comps["cc.Sprite"]) {
+    if (comps && comps["cc.Sprite"]) {
         let spriteFrames = comps["cc.Sprite"]["spriteFrame"];
         for (const spriteFrame of spriteFrames) {
             let uuid = spriteFrame["value"]["__uuid__"];
@@ -108,7 +117,7 @@ let findAllResourceInAsset = (cb) => {
 }
 
 module.exports.findEmptyFinder = () => {
-    assetdb.queryAssets('db://assets/**\/*', "folder", (err, results) => {
+    assetdb.queryAssets('db://assets/', "folder", (err, results) => {
         if (err) {
             return;
         }

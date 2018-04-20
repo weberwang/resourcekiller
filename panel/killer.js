@@ -76,11 +76,11 @@ Editor.Panel.extend({
         onSelectedAll(event) {
           this.selectAll = !this.selectAll;
           if (this.selectAll) {
-            for (const key in this.$els) {
+            for (const key in this.$el.ownerDocument) {
               Editor.log(key)
             }
-            // let selects = document.getElementById("form");
-            // Editor.log(selects.length, selects[0])
+            let selects = this.$el.ownerDocument.getElementById("killer");
+            Editor.log(selects)
             // event.currentTarget.className = "fa fa-check-square-o";
             this.selectedIndexs = this.unusedResults.concat();
           } else {

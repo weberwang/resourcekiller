@@ -17,7 +17,13 @@ Editor.Panel.extend({
 
   messages: {
     onUnsedResults(sender, results) {
-      this.vm.unusedResults = results;
+      this.vm.unusedResults.splice(0);
+      results.forEach(url => {
+        this.vm.unusedResults.push({
+          url: url,
+          checked: this.selectAll
+        });
+      });
     }
   },
   ready() {
@@ -37,19 +43,20 @@ Editor.Panel.extend({
         },
 
         onSelected(event, index) {
-          let idx = this.selectedIndexs.indexOf(index)
+          let result = this.unscheduleAllCallbacks[index];
+          let idx = this.selectedIndexs.indexOf(result.url);
           if (idx === -1) {
-            // event.currentTarget.className = "fa fa-check-square-o";
-            this.selectedIndexs.push(index);
+            result.checked = true;
+            this.selectedIndexs.push(result.url);
           } else {
-            // event.currentTarget.className = "fa fa-check-square";
+            result.checked = false;
             this.selectedIndexs.splice(idx, 1);
           }
         },
 
         onDeleteItem(e, index) {
           let asseturl = this.unusedResults.splice(index, 1)[0];
-          assetdb.delete(asseturl);
+          assetdb.delete(asseturl.url);
           this.deleteFinish();
         },
 
@@ -62,27 +69,21 @@ Editor.Panel.extend({
         },
 
         onDeleteItems() {
-          let items = []
-          for (const index of this.selectedIndexs.splice(0)) {
-            items.push(this.unusedResults.splice(index, 1)[0])
-          }
-          assetdb.delete(items);
+          assetdb.delete(this.selectedIndexs.splice(0));
           this.deleteFinish();
         },
 
         onSelectedAll(event) {
           this.selectAll = !this.selectAll;
           if (this.selectAll) {
-            for (const key in this.$els) {
-              Editor.log(key)
-            }
-            Editor.log(this.selects)
-            let selects = document.getElementById("form");
-
-            // event.currentTarget.className = "fa fa-check-square-o";
-            this.selectedIndexs = this.unusedResults.concat();
+            this.unusedResults.forEach((result) => {
+              result.checked = true;
+              this.selectedIndexs.push(result.url);
+            });
           } else {
-            // event.currentTarget.className = "fa fa-check-square";
+            this.unusedResults.forEach((result) => {
+              result.checked = false;
+            });
             this.selectedIndexs.splice(0);
           }
         },

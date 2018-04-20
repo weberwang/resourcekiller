@@ -113,6 +113,9 @@ let findAllResourceInAsset = (cb) => {
             return;
         }
         for (const result of results) {
+            // if(result.type === "typescript"){
+            //     Editor.log(JSON.stringify(result))
+            // }
             if (result.hidden === false && checkTyps.indexOf(result.type) > -1) {
                 checkFilesPaths.push(assetdb.remote.uuidToUrl(result.uuid));
             }

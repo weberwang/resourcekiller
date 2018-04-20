@@ -3,8 +3,6 @@
 let fs = require("fs");
 let path = require("path")
 
-let decodeUuid = require("./decodeuuid")
-
 let resourceTypes = [{
     type: "cc.Sprite",
     value: "_spriteFrame"
@@ -21,7 +19,7 @@ let animTyps = [{
     value: "_clip"
 }];
 let assetsTypes = ["scene", "prefab", "animation-clip"]
-let checkTyps = ["texture", "audio-clip", /* "typescript", "javascript" */ ]
+let checkTyps = ["texture", "audio-clip", "typescript", "javascript"]
 let assetdb = Editor.assetdb;
 
 let checkFilesPaths = []
@@ -46,9 +44,9 @@ let findUsedResource = (assetType) => {
             });
             let assetData = JSON.parse(data);
             if (assetType === "animation-clip") {
-                this.findAnima(assetData);
+                findAnima(assetData);
             } else {
-                this.findSceneAndPrefab(assetData);
+                findSceneAndPrefab(assetData);
             }
         }
         Editor.Ipc.sendToPanel("resourcekiller", "onUnsedResults", checkFilesPaths);
@@ -60,10 +58,11 @@ let findSceneAndPrefab = (assetData) => {
         let typeData = pattentType(asset["__type__"]);
         if (typeData) {
             let assetuuid = asset[typeData["value"]]["__uuid__"];
-            this.deleteExistWithUuid(assetuuid)
+            deleteExistWithUuid(assetuuid)
         } else {
             if (asset["__type__"].indexOf("cc.") === -1) {
-                // Editor.log(decodeUuid(asset["__type__"]))
+                let scriptUuid = Editor.Utils.UuidUtils.decompressUuid(asset['__type__']);
+                deleteExistWithUuid(scriptUuid)
             }
         }
     }
@@ -75,7 +74,7 @@ let findAnima = (assetData) => {
         let spriteFrames = comps["cc.Sprite"]["spriteFrame"];
         for (const spriteFrame of spriteFrames) {
             let uuid = spriteFrame["value"]["__uuid__"];
-            this.deleteExistWithUuid(uuid);
+            deleteExistWithUuid(uuid);
         }
     }
 }
@@ -89,9 +88,7 @@ let deleteExistWithUuid = (uuid) => {
 }
 
 let findAllUsed = () => {
-    for (const assetType of assetsTypes) {
-        findUsedResource(assetType);
-    }
+    findUsedResource(assetsTypes);
 }
 
 let findAllResourceInAsset = (cb) => {
@@ -110,7 +107,30 @@ let findAllResourceInAsset = (cb) => {
     })
 }
 
+let findEmptyFinder = () => {
+    assetdb.queryAssets('db://assets/**\/*', "folder", (err, results) => {
+        if (err) {
+            return;
+        }
+        for (const result of results) {
+            if (result.hidden === false) {
+                let path = assetdb.remote.uuidToFspath(result.uuid);
+                fs.readdir(path, (err, files) => {
+                    if (err) {
+                        return;
+                    }
+                    files.forEach((file) => {
+                        Editor.log(file)
+                    })
+                })
+            }
+        }
+    });
+
+}
+
 
 module.exports.findAllUsedResource = () => {
+    // findEmptyFinder();
     findAllResourceInAsset(findAllUsed);
 }

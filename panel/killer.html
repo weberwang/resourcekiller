@@ -1,33 +1,38 @@
+<!-- <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/vue"></script> -->
 <div id="killer" class="killer">
     <p>
-        <button v-on:click="onQuery" class="fa fa-refresh">查找</button>
+        <button v-on:click="onQuery" class="fa fa-search">查找</button>
     </p>
     <p>
-        <label style="color: #979906;size: 24px">删除前确认资源没有被动态加载，删除前请备份</label>
+        <label style="color: #979906;size: 30px">删除前确认资源没有被动态加载，删除前请备份</label>
     </p>
     <p/>
-    <span>
-        <i>一共找到{{unusedResults.length}}个未被引用的资源</i>
-        <div style="margin: 0,0; cursor: pointer;">
-
-            <i>选中{{selectedIndexs.length}}</i>
+    <span style="width: 100%;">
+        <span>一共找到
+            <label style="color: red">{{unusedResults.length}}</label>个未被引用的资源</span>
+        <span style="padding-right: 0px; cursor: pointer;">
+            <span>选中
+                <label style="color: red">{{selectedIndexs.length}}</label>
+            </span>
+            <input type="checkbox" title="全选" @click="onSelectedAll($event)" />
             <i class="fa fa-trash" title="删除" @click="onDeleteItems"></i>
-        </div>
+        </span>
 
     </span>
-    <section class="form">
+    <section class="form" el: "form" id="form">
         <ul>
             <li>
                 <div class="path">路径</div>
                 <div class="operating">操作</div>
                 <div class="controller"></div>
             </li>
-            <li is="todo-item" v-for="(index, result) in unusedResults" v-bind:key="index" :title="result">
+            <li v-for="(index, result) in unusedResults" v-bind:key="index" :title="result">
                 <div class="path">
                     {{result}}
                 </div>
                 <div class="controller">
-                    <i class="fa fa-check-square" aria-hidden="true" title="选择" @click="onSelected($event,index)"></i>
+                    <input type="checkbox" title="选择" el: "selects" ref="selects" @click="onSelected($event,index)" />
+                    <!-- <i class="fa fa-check-square" aria-hidden="true" title="选择" @click="onSelected($event,index)"></i> -->
                     <i class="fa fa-file" aria-hidden="true" title="场景资源" @click="onHintAsset(result)"></i>
                     <i class="fa fa-times" aria-hidden="true" title="删除该资源" @click="onDeleteItem(index)"></i>
                 </div>

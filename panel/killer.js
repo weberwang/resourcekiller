@@ -19,12 +19,17 @@ Editor.Panel.extend({
       this.vm.unusedResults = results;
     }
   },
+
+  mounted() {
+    Editor.log("mounted======>")
+  },
   ready() {
     this.vm = new window.Vue({
       el: this.$killer,
       data: {
         unusedResults: [],
-        selectedIndexs: []
+        selectedIndexs: [],
+        selectAll: false
       },
 
       methods: {
@@ -37,10 +42,10 @@ Editor.Panel.extend({
         onSelected(event, index) {
           let idx = this.selectedIndexs.indexOf(index)
           if (idx === -1) {
-            event.currentTarget.className = "fa fa-check-square-o";
+            // event.currentTarget.className = "fa fa-check-square-o";
             this.selectedIndexs.push(index);
           } else {
-            event.currentTarget.className = "fa fa-check-square";
+            // event.currentTarget.className = "fa fa-check-square";
             this.selectedIndexs.splice(idx, 1);
           }
         },
@@ -63,7 +68,23 @@ Editor.Panel.extend({
             Editor.log("onDeleteItems====>", index);
             this.onDeleteItem(index);
           }
-          this.selectedIndexs = [];
+          this.selectedIndexs.splice(0);
+        },
+
+        onSelectedAll(event) {
+          this.selectAll = !this.selectAll;
+          if (this.selectAll) {
+            for (const key in this.$els) {
+              Editor.log(key)
+            }
+            // let selects = document.getElementById("form");
+            // Editor.log(selects.length, selects[0])
+            // event.currentTarget.className = "fa fa-check-square-o";
+            this.selectedIndexs = this.unusedResults.concat();
+          } else {
+            // event.currentTarget.className = "fa fa-check-square";
+            this.selectedIndexs.splice(0);
+          }
         }
       }
     });

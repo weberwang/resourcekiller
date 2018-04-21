@@ -18,6 +18,7 @@ Editor.Panel.extend({
   messages: {
     onUnsedResults(sender, results) {
       this.vm.unusedResults.splice(0);
+      if (results.lenght === 0) Editor.success("未找到没有引用的资源");
       results.forEach(url => {
         this.vm.unusedResults.push({
           url: url,
@@ -42,8 +43,8 @@ Editor.Panel.extend({
           findAssets.findAllUsedResource();
         },
 
-        onSelected(event, index) {
-          let result = this.unscheduleAllCallbacks[index];
+        onSelected(event, result) {
+          // let result = this.unusedResults[index];
           let idx = this.selectedIndexs.indexOf(result.url);
           if (idx === -1) {
             result.checked = true;
@@ -60,7 +61,8 @@ Editor.Panel.extend({
           this.deleteFinish();
         },
 
-        onHintAsset(url) {
+        onHintAsset(result) {
+          let url = result.url;
           if (assetdb.remote.exists(url)) {
             let uuid = assetdb.remote.urlToUuid(url);
             Editor.Ipc.sendToPanel("assets", 'assets:hint', uuid);
@@ -69,7 +71,16 @@ Editor.Panel.extend({
         },
 
         onDeleteItems() {
-          assetdb.delete(this.selectedIndexs.splice(0));
+          let urls = this.selectedIndexs.splice(0);
+          for (let index = this.unusedResults.lenght - 1; index > -1; index--) {
+            for (const url of urls) {
+              if (this.unusedResults[index].url === url) {
+                this.unusedResults.splice(index, 1);
+              }
+            }
+
+          }
+          assetdb.delete(urls);
           this.deleteFinish();
         },
 
@@ -78,7 +89,7 @@ Editor.Panel.extend({
           if (this.selectAll) {
             this.unusedResults.forEach((result) => {
               result.checked = true;
-              this.selectedIndexs.push(result.url);
+              if (this.selectedIndexs.indexOf(result.url) === -1) this.selectedIndexs.push(result.url);
             });
           } else {
             this.unusedResults.forEach((result) => {

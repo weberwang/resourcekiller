@@ -48,6 +48,7 @@ let findUsedResource = (assetType) => {
             let data = fs.readFileSync(result.path, {
                 encoding: "utf-8"
             });
+            if (checkFilesPaths.indexOf(result.url) === -1) continue;
             Editor.log(result.path)
             let assetData = JSON.parse(data);
             if (result.type === "animation-clip") {
@@ -56,6 +57,7 @@ let findUsedResource = (assetType) => {
                 findSceneAndPrefab(assetData);
             }
         }
+        findParentScript();
         Editor.Ipc.sendToPanel("resourcekiller", "onUnsedResults", checkFilesPaths);
     });
 }
@@ -113,15 +115,52 @@ let findAllResourceInAsset = (cb) => {
             return;
         }
         for (const result of results) {
-            // if(result.type === "typescript"){
-            //     Editor.log(JSON.stringify(result))
-            // }
             if (result.hidden === false && checkTyps.indexOf(result.type) > -1) {
                 checkFilesPaths.push(assetdb.remote.uuidToUrl(result.uuid));
             }
         }
         cb()
     })
+}
+
+let findDepsScripts = (scriptData) => {
+    let depsIndexs = [];
+    for (const key in scriptData.deps) {
+        depsIndexs.push(scriptData.deps[key])
+    }
+    return depsIndexs;
+}
+
+let deleteScriptUrl = (url) => {
+    let index = checkFilesPaths.indexOf(url);
+    if (index === -1) {
+        url = url.replace(".js", ".ts")
+        index = checkFilesPaths.indexOf(url);
+    }
+    if (index > -1) checkFilesPaths.splice(index, 1);
+}
+
+let findParentScript = () => {
+    let simulatorPath = PATH.join(PATH.dirname(Editor.appPath), "cocos2d-x", "simulator");
+    let settingPath = ""
+    if (Editor.isDarwin) {
+        settingPath = PATH.join(simulatorPath, "mac/Simulator.app/Contents/Resources/")
+    } else {
+
+    }
+    settingPath = PATH.join(settingPath, "src/settings.js");
+    require(settingPath);
+    let settingsScript = _CCSettings.scripts;
+    let indexs = [];
+    for (const script of settingsScript) {
+        if (checkFilesPaths.indexOf(script.file) === -1) {
+            indexs = (findDepsScripts(script));
+            for (const index of indexs) {
+                let scriptUrl = settingsScript[index].file.replace("preview-scripts/", "db://");
+                deleteScriptUrl(scriptUrl);
+            }
+        }
+    }
 }
 
 module.exports.findEmptyFinder = () => {
@@ -154,5 +193,6 @@ let deleteFolderRecursive = (path) => {
 
 module.exports.findAllUsedResource = () => {
     // findEmptyFinder();
+    // findParentScript()
     findAllResourceInAsset(findAllUsed);
 }

@@ -38,7 +38,7 @@ Editor.Panel.extend({
 
       methods: {
         onQuery(e) {
-          Editor.success("开始查找未被直接引用的资源...");
+          Editor.success("开始查找未引用的资源...");
           this.selectedIndexs = [];
           findAssets.findAllUsedResource();
         },

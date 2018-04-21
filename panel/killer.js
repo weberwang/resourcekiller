@@ -72,13 +72,12 @@ Editor.Panel.extend({
 
         onDeleteItems() {
           let urls = this.selectedIndexs.splice(0);
-          for (let index = this.unusedResults.lenght - 1; index > -1; index--) {
-            for (const url of urls) {
+          for (const url of urls) {
+            for (let index = this.unusedResults.length - 1; index > -1; index--) {
               if (this.unusedResults[index].url === url) {
                 this.unusedResults.splice(index, 1);
               }
             }
-
           }
           assetdb.delete(urls);
           this.deleteFinish();

@@ -24,7 +24,7 @@ let animTyps = [{
     type: "cc.AudioSource",
     value: "_clip"
 }];
-let assetsTypes = ["scene", "prefab", "animation-clip"]
+let assetsTypes = ["scene", "prefab"]
 let checkTyps = ["texture", "audio-clip", "typescript", "javascript", "animation-clip"]
 let assetdb = Editor.assetdb;
 
@@ -39,7 +39,7 @@ let pattentType = (type) => {
     return null;
 }
 
-let findUsedResource = (assetType) => {
+let findUsedResource = (assetType, last) => {
     assetdb.queryAssets('db://assets/**', assetType, (err, results) => {
         if (err) {
             return
@@ -48,17 +48,20 @@ let findUsedResource = (assetType) => {
             let data = fs.readFileSync(result.path, {
                 encoding: "utf-8"
             });
-            if (checkFilesPaths.indexOf(result.url) === -1) continue;
-            Editor.log(result.path)
             let assetData = JSON.parse(data);
             if (result.type === "animation-clip") {
+                if (checkFilesPaths.indexOf(result.url) !== -1) continue;
                 findAnima(assetData);
             } else {
                 findSceneAndPrefab(assetData);
             }
         }
-        findParentScript();
-        Editor.Ipc.sendToPanel("resourcekiller", "onUnsedResults", checkFilesPaths);
+        if (!last) {
+            findUsedResource("animation-clip", true);
+        } else {
+            findParentScript();
+            Editor.Ipc.sendToPanel("resourcekiller", "onUnsedResults", checkFilesPaths);
+        }
     });
 }
 
@@ -69,6 +72,7 @@ let findSceneAndPrefab = (assetData) => {
             let value = asset[typeData["value"]];
             if (!value) continue;
             if (typeData.type === "cc.Animation") {
+                if (value[0] === null) return;
                 for (const data of value) {
                     deleteExistWithUuid(data["__uuid__"]);
                 }

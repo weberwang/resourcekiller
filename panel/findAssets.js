@@ -25,7 +25,7 @@ let animTyps = [{
     value: "_clip"
 }];
 let assetsTypes = ["scene", "prefab"]
-let checkTyps = ["texture", "audio-clip", "typescript", "javascript", "animation-clip"]
+let checkTyps = ["texture", "audio-clip", "typescript", "javascript", "animation-clip", "spine", "raw-asset"]
 let assetdb = Editor.assetdb;
 
 let checkFilesPaths = []
@@ -65,6 +65,24 @@ let findUsedResource = (assetType, last) => {
     });
 }
 
+let findSpine = (uuid) => {
+    let jsonpath = assetdb.remote.uuidToFspath(uuid);
+    let dirpath = PATH.dirname(jsonpath);
+    let basename = PATH.basename(jsonpath).replace(PATH.extname(jsonpath), "");
+    let noextname = PATH.join(dirpath, basename);
+    let files = fs.readdirSync(dirpath, "utf8");
+    let pathforspine = null;
+    for (const file of files) {
+        if (PATH.extname(file) !== ".meta") {
+            pathforspine = PATH.join(dirpath, file);
+            if (pathforspine.indexOf(noextname) === 0) {
+                let index = checkFilesPaths.indexOf(assetdb.remote.fspathToUrl(pathforspine));
+                if (index > -1) checkFilesPaths.splice(index, 1);
+            }
+        }
+    }
+}
+
 let findSceneAndPrefab = (assetData) => {
     for (const asset of assetData) {
         let typeData = pattentType(asset["__type__"]);
@@ -77,6 +95,9 @@ let findSceneAndPrefab = (assetData) => {
                     deleteExistWithUuid(data["__uuid__"]);
                 }
             } else {
+                if (typeData.type === "sp.Skeleton") {
+                    findSpine(value["__uuid__"]);
+                }
                 deleteExistWithUuid(value["__uuid__"]);
             }
         } else {
@@ -90,12 +111,22 @@ let findSceneAndPrefab = (assetData) => {
 
 let findAnima = (assetData) => {
     let comps = assetData["curveData"]["comps"];
-    if (comps && comps["cc.Sprite"]) {
+    if (!comps) return;
+    if (comps.hasOwnProperty("cc.Sprite")) {
         let spriteFrames = comps["cc.Sprite"]["spriteFrame"];
         if (spriteFrames) {
             for (const spriteFrame of spriteFrames) {
                 let uuid = spriteFrame["value"]["__uuid__"];
                 deleteExistWithUuid(uuid);
+            }
+        }
+    }
+    if (comps.hasOwnProperty("sp.Skeleton")) {
+        let skeletonData = comps["sp.Skeleton"]["skeletonData"];
+        if (skeletonData) {
+            for (const skData of skeletonData) {
+                let uuid = skData["value"]["__uuid__"];
+                findSpine(uuid);
             }
         }
     }

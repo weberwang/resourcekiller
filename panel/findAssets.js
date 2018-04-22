@@ -25,7 +25,7 @@ let animTyps = [{
     value: "_clip"
 }];
 let assetsTypes = ["scene", "prefab"]
-let checkTyps = ["texture", "audio-clip", "typescript", "javascript", "animation-clip", "spine", "raw-asset"]
+let checkTyps = ["texture", "audio-clip", "typescript", "javascript", "animation-clip", "spine", "raw-asset", "sprite-atlas"]
 let assetdb = Editor.assetdb;
 
 let checkFilesPaths = []
@@ -83,6 +83,15 @@ let findSpine = (uuid) => {
     }
 }
 
+let findAltas = (uuid) => {
+    deleteExistWithUuid(uuid);
+    let plistpath = assetdb.remote.uuidToFspath(uuid);
+    let metapath = plistpath + ".meta";
+    let metadata = fs.readFileSync(metapath, {encoding:"utf8"});
+    metadata = JSON.parse(metadata);
+    deleteExistWithUuid(metadata.rawTextureUuid);
+}
+
 let findSceneAndPrefab = (assetData) => {
     for (const asset of assetData) {
         let typeData = pattentType(asset["__type__"]);
@@ -97,6 +106,12 @@ let findSceneAndPrefab = (assetData) => {
             } else {
                 if (typeData.type === "sp.Skeleton") {
                     findSpine(value["__uuid__"]);
+                } else if (typeData.type === "cc.Sprite") {
+                    if (asset["_atlas"]) {
+                        Editor.log(asset["_atlas"]["__uuid__"])
+                        findAltas(asset["_atlas"]["__uuid__"])
+                        // deleteExistWithUuid(asset["_atlas"]["__uuid__"]);
+                    }
                 }
                 deleteExistWithUuid(value["__uuid__"]);
             }
@@ -150,6 +165,7 @@ let findAllResourceInAsset = (cb) => {
             return;
         }
         for (const result of results) {
+            // Editor.log(JSON.stringify(result))
             if (result.hidden === false && checkTyps.indexOf(result.type) > -1) {
                 checkFilesPaths.push(assetdb.remote.uuidToUrl(result.uuid));
             }

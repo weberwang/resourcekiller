@@ -87,7 +87,9 @@ let findAltas = (uuid) => {
     deleteExistWithUuid(uuid);
     let plistpath = assetdb.remote.uuidToFspath(uuid);
     let metapath = plistpath + ".meta";
-    let metadata = fs.readFileSync(metapath, {encoding:"utf8"});
+    let metadata = fs.readFileSync(metapath, {
+        encoding: "utf8"
+    });
     metadata = JSON.parse(metadata);
     deleteExistWithUuid(metadata.rawTextureUuid);
 }
@@ -197,7 +199,7 @@ let findParentScript = () => {
     if (Editor.isDarwin) {
         settingPath = PATH.join(simulatorPath, "mac/Simulator.app/Contents/Resources/")
     } else {
-
+        settingPath = PATH.join(simulatorPath, "win32")
     }
     settingPath = PATH.join(settingPath, "src/settings.js");
     require(settingPath);

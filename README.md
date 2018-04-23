@@ -8,6 +8,7 @@
 <li>检测未被引用的动画剪辑中的spriteframe
 <li>递归删除空文件夹
 <li>支持多选，全选删除资源
+<li>texturepacker图集检测
 </ul>
 
 <h5>todo:过滤条件

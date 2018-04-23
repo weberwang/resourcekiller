@@ -18,7 +18,11 @@ Editor.Panel.extend({
   messages: {
     onUnsedResults(sender, results) {
       this.vm.unusedResults.splice(0);
-      if (results.lenght === 0) Editor.success("未找到没有引用的资源");
+      if (results.lenght === 0) {
+        Editor.success("未找到没有引用的资源");
+      } else {
+        Editor.success("查找完毕");
+      }
       results.forEach(url => {
         this.vm.unusedResults.push({
           url: url,
@@ -33,14 +37,15 @@ Editor.Panel.extend({
       data: {
         unusedResults: [],
         selectedIndexs: [],
-        selectAll: false
+        selectAll: false,
+        ignore: ""
       },
 
       methods: {
         onQuery(e) {
           Editor.success("开始查找未引用的资源...");
           this.selectedIndexs = [];
-          findAssets.findAllUsedResource();
+          findAssets.findAllUsedResource(this.ignore);
         },
 
         onSelected(event, result) {
@@ -76,6 +81,7 @@ Editor.Panel.extend({
             for (let index = this.unusedResults.length - 1; index > -1; index--) {
               if (this.unusedResults[index].url === url) {
                 this.unusedResults.splice(index, 1);
+                break;
               }
             }
           }
@@ -100,7 +106,7 @@ Editor.Panel.extend({
 
         deleteFinish() {
           findAssets.findEmptyFinder();
-          Editor.success("清理完成")
+          Editor.success("清理完毕")
         }
       }
     });

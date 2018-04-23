@@ -31,7 +31,7 @@ let animTyps = [{
     value: "_clip"
 }];
 let assetsTypes = ["scene", "prefab"]
-let checkTyps = ["texture", "audio-clip", "typescript", "javascript", "animation-clip", "spine", "raw-asset", "sprite-atlas", "bitmap-font"]
+let checkTyps = ["texture", "audio-clip", "typescript", "javascript", "animation-clip", "spine", "raw-asset", "sprite-atlas", "bitmap-font", "label-atlas"]
 let assetdb = Editor.assetdb;
 
 let checkFilesPaths = []
@@ -106,8 +106,9 @@ let findFnt = (uuid) => {
     metadata = JSON.parse(metadata);
     if (metadata.textureUuid) {
         deleteExistWithUuid(metadata.textureUuid);
+    } else if (metadata.rawTextureUuid) {
+        deleteExistWithUuid(metadata.rawTextureUuid);
     }
-
 }
 
 let findDepsResource = (asset, typeData) => {
@@ -186,8 +187,10 @@ let findAllUsed = () => {
     findUsedResource(assetsTypes);
 }
 
-let findAllResourceInAsset = (cb) => {
+let findAllResourceInAsset = (ignore, cb) => {
     checkFilesPaths.splice(0);
+    Editor.log(ignore, ignore.replace(";", "|"));
+    let ignoreRex = new RegExp(ignore.replace(";", "|"));
     assetdb.deepQuery((err, results) => {
         if (err) {
             return;
@@ -195,7 +198,11 @@ let findAllResourceInAsset = (cb) => {
         for (const result of results) {
             // Editor.log(JSON.stringify(result))
             if (result.hidden === false && checkTyps.indexOf(result.type) > -1) {
-                checkFilesPaths.push(assetdb.remote.uuidToUrl(result.uuid));
+                let url = assetdb.remote.uuidToUrl(result.uuid);
+                if (ignore && ignore !== "" && ignoreRex.test(url)) {
+                    continue;
+                }
+                checkFilesPaths.push(url);
             }
         }
         cb()
@@ -270,8 +277,8 @@ let deleteFolderRecursive = (path) => {
 };
 
 
-module.exports.findAllUsedResource = () => {
+module.exports.findAllUsedResource = (ignore) => {
     // findEmptyFinder();
     // findParentScript()
-    findAllResourceInAsset(findAllUsed);
+    findAllResourceInAsset(ignore, findAllUsed);
 }

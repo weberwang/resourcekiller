@@ -1,6 +1,9 @@
 <!-- <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/vue"></script> -->
 <div id="killer" class="killer">
     <p>
+        <input type="text" v-model="ignore">正则忽略规则，多个规则使用;分割
+    </p>
+    <p>
         <button v-on:click="onQuery" class="fa fa-search">查找</button>
     </p>
     <p>

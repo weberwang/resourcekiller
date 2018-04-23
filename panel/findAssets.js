@@ -190,8 +190,8 @@ let findAllUsed = () => {
 
 let findAllResourceInAsset = (ignore, cb) => {
     checkFilesPaths.splice(0);
-    Editor.log(ignore, ignore.replace(";", "|"));
-    let ignoreRex = new RegExp(ignore.replace(";", "|"));
+    Editor.log(ignore, ignore.replace(/;/g, "|"));
+    let ignoreRex = new RegExp(ignore.replace(/;/g, "|"));
     assetdb.deepQuery((err, results) => {
         if (err) {
             return;

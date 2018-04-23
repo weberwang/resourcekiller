@@ -15,6 +15,12 @@ let resourceTypes = [{
 }, {
     type: "sp.Skeleton",
     value: "_N$skeletonData"
+}, {
+    type: "cc.Label",
+    value: "_N$file"
+}, {
+    type: "cc.RichText",
+    value: "_N$font"
 }];
 
 let animTyps = [{
@@ -25,7 +31,7 @@ let animTyps = [{
     value: "_clip"
 }];
 let assetsTypes = ["scene", "prefab"]
-let checkTyps = ["texture", "audio-clip", "typescript", "javascript", "animation-clip", "spine", "raw-asset", "sprite-atlas"]
+let checkTyps = ["texture", "audio-clip", "typescript", "javascript", "animation-clip", "spine", "raw-asset", "sprite-atlas", "bitmap-font"]
 let assetdb = Editor.assetdb;
 
 let checkFilesPaths = []
@@ -66,21 +72,17 @@ let findUsedResource = (assetType, last) => {
 }
 
 let findSpine = (uuid) => {
-    let jsonpath = assetdb.remote.uuidToFspath(uuid);
-    let dirpath = PATH.dirname(jsonpath);
-    let basename = PATH.basename(jsonpath).replace(PATH.extname(jsonpath), "");
-    let noextname = PATH.join(dirpath, basename);
-    let files = fs.readdirSync(dirpath, "utf8");
-    let pathforspine = null;
-    for (const file of files) {
-        if (PATH.extname(file) !== ".meta") {
-            pathforspine = PATH.join(dirpath, file);
-            if (pathforspine.indexOf(noextname) === 0) {
-                let index = checkFilesPaths.indexOf(assetdb.remote.fspathToUrl(pathforspine));
-                if (index > -1) checkFilesPaths.splice(index, 1);
-            }
-        }
+    deleteExistWithUuid(uuid);
+    let plistpath = assetdb.remote.uuidToFspath(uuid);
+    let metapath = plistpath + ".meta";
+    let metadata = fs.readFileSync(metapath, {
+        encoding: "utf8"
+    });
+    metadata = JSON.parse(metadata);
+    for (const texture of metadata.textures) {
+        deleteExistWithUuid(texture);
     }
+    deleteExistWithUuid(metadata.atlas);
 }
 
 let findAltas = (uuid) => {
@@ -92,6 +94,38 @@ let findAltas = (uuid) => {
     });
     metadata = JSON.parse(metadata);
     deleteExistWithUuid(metadata.rawTextureUuid);
+}
+
+let findFnt = (uuid) => {
+    deleteExistWithUuid(uuid);
+    let plistpath = assetdb.remote.uuidToFspath(uuid);
+    let metapath = plistpath + ".meta";
+    let metadata = fs.readFileSync(metapath, {
+        encoding: "utf8"
+    });
+    metadata = JSON.parse(metadata);
+    if (metadata.textureUuid) {
+        deleteExistWithUuid(metadata.textureUuid);
+    }
+
+}
+
+let findDepsResource = (asset, typeData) => {
+    let value = asset[typeData["value"]];
+    switch (typeData.type) {
+        case "sp.Skeleton":
+            findSpine(value["__uuid__"]);
+            break;
+        case "cc.Sprite":
+            if (asset["_atlas"]) {
+                findAltas(asset["_atlas"]["__uuid__"])
+            }
+            break;
+        case "cc.Label":
+        case "cc.RichText":
+            findFnt(value["__uuid__"])
+            break;
+    }
 }
 
 let findSceneAndPrefab = (assetData) => {
@@ -106,15 +140,7 @@ let findSceneAndPrefab = (assetData) => {
                     deleteExistWithUuid(data["__uuid__"]);
                 }
             } else {
-                if (typeData.type === "sp.Skeleton") {
-                    findSpine(value["__uuid__"]);
-                } else if (typeData.type === "cc.Sprite") {
-                    if (asset["_atlas"]) {
-                        Editor.log(asset["_atlas"]["__uuid__"])
-                        findAltas(asset["_atlas"]["__uuid__"])
-                        // deleteExistWithUuid(asset["_atlas"]["__uuid__"]);
-                    }
-                }
+                findDepsResource(asset, typeData);
                 deleteExistWithUuid(value["__uuid__"]);
             }
         } else {

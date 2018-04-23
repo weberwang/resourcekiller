@@ -179,6 +179,7 @@ let findAnima = (assetData) => {
 let deleteExistWithUuid = (uuid) => {
     if(!uuid || uuid === "") return;
     let resourcePath = assetdb.remote.uuidToUrl(uuid);
+    if(!resourcePath) return;
     resourcePath = PATH.extname(resourcePath) != "" ? resourcePath : PATH.dirname(resourcePath);
     let index = checkFilesPaths.indexOf(resourcePath)
     if (index > -1) checkFilesPaths.splice(index, 1);

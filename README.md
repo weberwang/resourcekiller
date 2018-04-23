@@ -9,6 +9,8 @@
 <li>递归删除空文件夹
 <li>支持多选，全选删除资源
 <li>texturepacker图集检测
+<li>数字图集检测
+<li>正则忽略
 </ul>
 
 <h5>todo:过滤条件

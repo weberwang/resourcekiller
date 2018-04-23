@@ -177,7 +177,7 @@ let findAnima = (assetData) => {
 }
 
 let deleteExistWithUuid = (uuid) => {
-    if(!uuid) return;
+    if(!uuid || uuid === "") return;
     let resourcePath = assetdb.remote.uuidToUrl(uuid);
     resourcePath = PATH.extname(resourcePath) != "" ? resourcePath : PATH.dirname(resourcePath);
     let index = checkFilesPaths.indexOf(resourcePath)
@@ -190,7 +190,6 @@ let findAllUsed = () => {
 
 let findAllResourceInAsset = (ignore, cb) => {
     checkFilesPaths.splice(0);
-    Editor.log(ignore, ignore.replace(/;/g, "|"));
     let ignoreRex = new RegExp(ignore.replace(/;/g, "|"));
     assetdb.deepQuery((err, results) => {
         if (err) {
